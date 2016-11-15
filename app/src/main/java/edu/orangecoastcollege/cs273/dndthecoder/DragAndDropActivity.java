@@ -30,6 +30,7 @@ public class DragAndDropActivity extends Activity {
         //TODO:  Add the CoderDragListener to every LinearLayout in activity_drag_and_drop
         // Loop through all 25 LinearLayouts which are children of the GridLayout
         int llChildCount = dragLayout.getChildCount();
+
         for(int i = 0; i < llChildCount; i++) // in this case we have only 1 child
         {
             View childView = dragLayout.getChildAt(i);
@@ -106,18 +107,24 @@ public class DragAndDropActivity extends Activity {
      * therefore removeView *must* be called before addView.
      */
     class CoderDragListener implements View.OnDragListener {
+        // change linearLayout border
         Drawable targetShape = ContextCompat.getDrawable(context, R.drawable.target_shape);
         Drawable normalShape = ContextCompat.getDrawable(context, R.drawable.normal_shape);
-
+        // change image border
+        Drawable strokeImage = ContextCompat.getDrawable(context, R.drawable.stroke_image);
+        Drawable normalImage = ContextCompat.getDrawable(context, R.drawable.normal_image);
 
         @Override
         public boolean onDrag(View v, DragEvent event)  // v is LinearLayout
         {
-            View targetView = (View) event.getLocalState(); // targetView is ImageView
-            //ViewGroup targetLinearLayout = (ViewGroup) targetView.getParent();
+            View targetView = (View) event.getLocalState(); // targetView is ImageView which Touch
             ViewGroup targetLinearLayout = (ViewGroup) targetView.getParent();
 
             LinearLayout destinationLinearLayout = (LinearLayout) v;
+            View destinationView = targetView; // in case if the linearLayout have no child
+            if(destinationLinearLayout.getChildCount() != 0) {
+                destinationView = destinationLinearLayout.getChildAt(0); // image which hovered
+            }
 
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -125,9 +132,13 @@ public class DragAndDropActivity extends Activity {
                     break;
                 case DragEvent.ACTION_DRAG_ENTERED: // drop position
                     v.setBackground(targetShape);
+                    // only change image stroke if LinearLayout has a child
+                    if(destinationLinearLayout.getChildCount() != 0)
+                        destinationView.setBackground(strokeImage);
                     break;
                 case DragEvent.ACTION_DRAG_EXITED:
                     v.setBackground(normalShape);
+                    destinationView.setBackground(normalImage);
                     break;
                 case DragEvent.ACTION_DROP:
                     // Dropped, reassign View to somewhere else in the ViewGroup
@@ -164,11 +175,13 @@ public class DragAndDropActivity extends Activity {
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
                     // Put image back if the destination is not a LinearLayout
-                    targetLinearLayout.removeView(targetView);
-                    targetLinearLayout.addView(targetView);
+                    /*targetLinearLayout.removeView(targetView);
+                    targetLinearLayout.addView(targetView);*/
                     targetView.setVisibility(View.VISIBLE);
 
                     v.setBackground(normalShape);
+                    targetView.setBackground(normalImage);
+                    destinationView.setBackground(normalImage);
                 default:
                     break;
             }
